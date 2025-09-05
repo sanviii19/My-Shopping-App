@@ -4,7 +4,7 @@ mongoose
     .connect(
         process.env.MONGODB_URL,
         {
-            dbName: "secdb",
+            dbName: "shopping-app-db",
         }
     )
     .then(() => {

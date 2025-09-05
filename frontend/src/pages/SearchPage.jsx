@@ -3,11 +3,16 @@ import { Navbar } from "../components/Navbar";
 import { useEffect } from "react";
 import { GridLoader } from "react-spinners";
 import { useState } from "react";
+import { Paginator } from "../components/paginator";
+
+const LIMIT_PER_PAGE = 10;
 
 const SearchPage = () => {
     const [query] = useSearchParams();
     const [loading, setLoading] = useState(false);
     const [products, setProducts] = useState([]);
+    const [total, setTotal] = useState(0);
+    const [page, setPage] = useState(1);
 
     const searchText = (query.get("text"));
 
@@ -15,12 +20,13 @@ const SearchPage = () => {
         try{
             setLoading(true);
             // API call to get all products based on search text
-            const response = await fetch(`http://localhost:3900/api/v1/products/?q=${searchText}`, {
+            const response = await fetch(`http://localhost:3900/api/v1/products/?q=${searchText}&limit=${LIMIT_PER_PAGE}&page=${page}`, {
                 method: "GET",
             });
             const result = await response.json();
             console.log(result);
             setProducts(result.data.products);
+            setTotal(result.data.total);
         }
         catch(err){
             alert("Error fetching products");
@@ -32,11 +38,11 @@ const SearchPage = () => {
 
     useEffect(() => {
         getAllProducts();
-    }, [searchText]);
+    }, [searchText, page]);
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 flex flex-col">
             <Navbar />
-            <div className="pt-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+            <div className="pt-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex-1 flex flex-col">
                 {searchText && (
                     <div className="mb-6">
                         <h2 className="text-xl text-gray-700">
@@ -44,7 +50,7 @@ const SearchPage = () => {
                         </h2>
                     </div>
                 )}
-                <div>{ loading ? (
+                <div className="flex-1">{ loading ? (
                     <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">  
                         <GridLoader color="#2563eb" size={20} />
                     </div>
@@ -60,11 +66,11 @@ const SearchPage = () => {
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                                 {products.map((elem) => (
                                     <div key={elem._id} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100">
-                                        <div className="aspect-w-1 aspect-h-1 bg-gray-100">
+                                        <div className="relative w-full h-48 bg-gray-100 rounded-t-lg overflow-hidden">
                                             <img 
                                                 src={elem.images?.[0]} 
                                                 alt={elem.title}
-                                                className="w-full h-48 object-cover rounded-t-lg"
+                                                className="w-full h-full object-contain"
                                             />
                                         </div>
                                         <div className="p-4">
@@ -86,6 +92,9 @@ const SearchPage = () => {
                         )}
                     </div>
                 )}
+                </div>
+                <div className="mt-auto">
+                    <Paginator total={total} page={page} limit={LIMIT_PER_PAGE} handlePageClick={(val) => {setPage(val)}} />
                 </div>
             </div>
         </div>

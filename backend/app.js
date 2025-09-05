@@ -14,11 +14,11 @@ app.use(cors ({
     origin: process.env.FRONTEND_URL
 }));
 
-app.use((req, res, next) =>{
-    setTimeout(() => {
-        next();
-    }, 2000);
-})
+// app.use((req, res, next) =>{
+//     setTimeout(() => {
+//         next();
+//     }, 2000);
+// })
 app.use(morgan("dev"));
 app.use(express.json());
 
