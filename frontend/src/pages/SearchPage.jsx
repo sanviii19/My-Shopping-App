@@ -20,7 +20,7 @@ const SearchPage = () => {
         try{
             setLoading(true);
             // API call to get all products based on search text
-            const response = await fetch(`http://localhost:3900/api/v1/products/?q=${searchText}&limit=${LIMIT_PER_PAGE}&page=${page}`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/products/?q=${searchText}&limit=${LIMIT_PER_PAGE}&page=${page}`, {
                 method: "GET",
             });
             const result = await response.json();
@@ -36,9 +36,16 @@ const SearchPage = () => {
         }
     }
 
+    // Reset page to 1 when search text changes
+    // useEffect(() => {
+    //     setPage(1);
+    // }, [searchText]);
+
     useEffect(() => {
+        setPage(1);
         getAllProducts();
     }, [searchText, page]);
+    
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
             <Navbar />
@@ -93,9 +100,11 @@ const SearchPage = () => {
                     </div>
                 )}
                 </div>
-                <div className="mt-auto">
-                    <Paginator total={total} page={page} limit={LIMIT_PER_PAGE} handlePageClick={(val) => {setPage(val)}} />
-                </div>
+                {products.length > 0 && (
+                    <div className="mt-auto">
+                        <Paginator total={total} page={page} limit={LIMIT_PER_PAGE} handlePageClick={(val) => {setPage(val)}} />
+                    </div>
+                )}
             </div>
         </div>
     )

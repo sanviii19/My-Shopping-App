@@ -2,7 +2,7 @@ import { Link, useNavigate, useSearchParams } from "react-router";
 import { IoMenuSharp } from "react-icons/io5";
 import { useState } from "react";
 
-const Navbar = () => {
+const Navbar = ({searchBar = true}) => {
     const [ query] = useSearchParams();
     const searchTextValue = query.get("text");
 
@@ -18,22 +18,25 @@ const Navbar = () => {
                 <div className="text-2xl font-bold text-white hover:text-blue-100 transition-colors duration-200">
                     My Shopping App
                 </div>
-                <div className="flex-1 max-w-xl mx-4">
-                    <div className="relative">
-                        <input  
-                            className="w-full px-4 py-2 rounded-lg border-2 border-blue-300 focus:border-blue-400 focus:outline-none bg-white/10 backdrop-blur-sm text-white placeholder-blue-100 shadow-inner"
-                            placeholder="Search products..."
-                            value={searchText}
-                            onChange={(e) =>
-                                setSearchText(e.target.value)
-                            }
-                        />
-                        <button className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1 bg-blue-700 hover:bg-blue-800 text-white rounded-md transition-colors duration-200 shadow-sm"
-                            onClick={handleSearch}>
-                            Search
-                        </button>
-                    </div>
-                </div>
+                {
+                    searchBar && (
+                        <div className="flex-1 max-w-xl mx-4">
+                            <div className="relative">
+                                <input  
+                                    className="w-full px-4 py-2 rounded-lg border-2 border-blue-300 focus:border-blue-400 focus:outline-none bg-white/10 backdrop-blur-sm text-white placeholder-blue-100 shadow-inner"
+                                    placeholder="Search products..."
+                                    value={searchText}
+                                    onChange={(e) =>
+                                        setSearchText(e.target.value)
+                                    }
+                                />
+                                <button className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1 bg-blue-700 hover:bg-blue-800 text-white rounded-md transition-colors duration-200 shadow-sm"
+                                    onClick={handleSearch}>
+                                    Search
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 <div className="flex items-center space-x-6">
                     <Link to="/" className="text-white hover:text-blue-100 font-medium transition-colors duration-200">Home</Link>
                     <Link to="/login" className="text-white hover:text-blue-100 font-medium transition-colors duration-200">Login</Link>
