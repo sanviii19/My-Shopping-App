@@ -125,4 +125,39 @@ const deleteProductValidator = (req, res, next) => {
     }
 };
 
-module.exports = { createProductValidator, updateProductValidator, deleteProductValidator };
+const viewProductValidator = (req, res, next) => {
+    try{
+        console.log("----- Inside viewProductValidator -----");
+        
+        const { productId } = req.params;
+
+        if(!productId){
+            res.status(400).json({
+                isSuccess: false,
+                message: "productId is required",
+            });
+            return;
+        }
+
+        if(!mongoose.Types.ObjectId.isValid(productId)){
+            res.status(400).json({
+                isSuccess: false,
+                message: "Invalid productId",
+                data: {},
+            });
+            return;
+        }
+
+        next();
+    }
+    catch(err){
+        console.log("----- Error inside viewProductValidator -----", err.message);
+        res.status(500).json({
+            isSuccess: false,
+            message: "Internal Server Error",
+            data: {},
+        });
+    }
+};
+
+module.exports = { createProductValidator, updateProductValidator, deleteProductValidator, viewProductValidator };

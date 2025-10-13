@@ -1,15 +1,24 @@
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { IoMenuSharp } from "react-icons/io5";
-import { useState } from "react";
+import { useState, useContext } from "react";
+import { useAuthContext } from "../context/AppContext";
 
 const Navbar = ({searchBar = true}) => {
     const [ query] = useSearchParams();
+    const { isLoggedIn, handleLogout } = useAuthContext();
+    const navigate = useNavigate();
+
     const searchTextValue = query.get("text");
 
     const [searchText, setSearchText] = useState(searchTextValue || "");
-    const navigate = useNavigate();
+    
     const handleSearch = () => {
         navigate(`/search?text=${searchText}`);
+    };
+
+    const handleLogoutAndNavigate = async () => {
+        await handleLogout();
+        navigate("/login");
     };
 
     return (
@@ -39,7 +48,14 @@ const Navbar = ({searchBar = true}) => {
                     )}
                 <div className="flex items-center space-x-6">
                     <Link to="/" className="text-white hover:text-blue-100 font-medium transition-colors duration-200">Home</Link>
-                    <Link to="/login" className="text-white hover:text-blue-100 font-medium transition-colors duration-200">Login</Link>
+                    {isLoggedIn ? (
+                        <button className="text-white hover:text-blue-100 font-medium transition-colors duration-200"
+                         onClick={handleLogoutAndNavigate}>
+                            Logout
+                         </button>
+                    ) : (
+                        <Link to="/login" className="text-white hover:text-blue-100 font-medium transition-colors duration-200">Login</Link>
+                    )}
                     <button className="text-white hover:text-blue-100 transition-colors duration-200">
                         <IoMenuSharp className="w-6 h-6" />
                     </button>

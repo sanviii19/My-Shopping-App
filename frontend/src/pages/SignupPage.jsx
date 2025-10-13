@@ -2,17 +2,18 @@ import { useState } from "react";
 import { Navbar } from "../components/Navbar";
 import { PropagateLoader } from "react-spinners";
 import { showErrorToast, showSuccessToast } from "../../utils/toastifyHelper";
+import { Link, useNavigate } from "react-router";
 
 const SignupPage = () => {
     const [isOtpSent, setIsOtpSent] = useState(false);
     const [loading, setLoading] = useState(false);
-
+    const navigate = useNavigate();
     const handleSignUp = async(e) => {
         try {
             setLoading(true);
             const email = e.target.email.value;
             const otp = e.target.otp.value;
-            const password = e.target[1].value;
+            const password = e.target.password.value;
             console.log(email, password);
 
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/auth/signup`, {
@@ -23,10 +24,17 @@ const SignupPage = () => {
                 },
             });
 
+            const data = await response.json();
+
             if(response.status == 201){
                 showSuccessToast("Signup successful!");
-            }else{
-                const data = await response.json();
+                navigate("/login");
+            }
+            else if(response.status === 409){
+                showErrorToast(data.message);
+                navigate("/login");
+            }
+            else{
                 showErrorToast(data.message);
             }
         } catch(err) {
@@ -136,6 +144,9 @@ const SignupPage = () => {
                             </>
                         )
                     }
+                    <div>
+                        <Link to="/login" className="text-blue-500 hover:underline flex justify-center mt-4">Already have an account? Log in</Link>
+                    </div>
                 </form>
             </div>
         </div>

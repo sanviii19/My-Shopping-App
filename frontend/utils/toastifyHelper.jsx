@@ -2,7 +2,7 @@ import { toast, Slide } from "react-toastify";
 
 const showErrorToast = (message) => {
     toast.error(message, {
-        position: "top-center",
+        position: "bottom-left",
         autoClose: 3000,
         hideProgressBar: false,
         closeOnClick: false,
@@ -16,7 +16,7 @@ const showErrorToast = (message) => {
 
 const showSuccessToast = (message) => {
     toast.success(message, {
-        position: "top-center",
+        position: "bottom-left",
         autoClose: 3000,
         hideProgressBar: false,
         closeOnClick: false,

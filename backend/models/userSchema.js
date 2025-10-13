@@ -3,6 +3,11 @@ const bcrypt = require("bcrypt");
 
 const { Schema, model } = mongoose;
 
+const ROLE_OPTIONS = {
+    USER: "user",
+    ADMIN: "admin"
+}
+
 const UserSchema = new Schema(
     {
        email: {
@@ -37,6 +42,11 @@ const UserSchema = new Schema(
         type: Boolean,
         default: false,
        },
+       role: {
+        type: String,
+        enum: [ROLE_OPTIONS.USER, ROLE_OPTIONS.ADMIN],
+        default: ROLE_OPTIONS.USER,
+       }
     },
     {
         timestamps: true,
@@ -68,4 +78,4 @@ UserSchema.pre("save", async function (next) {
 
 const UserModel = model("user", UserSchema);
 
-module.exports = { UserModel };
+module.exports = { UserModel, ROLE_OPTIONS };

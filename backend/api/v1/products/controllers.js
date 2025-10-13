@@ -208,10 +208,44 @@ const listProductController = async (req, res) => {
     }
 };
 
+const viewProductController = async (req, res) =>{
+    console.log("----- Inside viewProductController -----");
+    try{
+        const { productId } = req.params;
+        const product = await ProductModel.findById(productId);
+
+        if(!product){
+            res.status(400).json({
+                isSuccess: false,
+                message: "product not found",
+                data: {},
+            });
+            return;
+        }
+
+        res.status(200).json({
+            isSuccess: true,
+            message: "product fetched",
+            data: {
+                product,
+            },
+        });
+    }
+    catch(err){
+        console.log("----- Error inside viewProductController -----", err.message);
+        res.status(500).json({
+            isSuccess: false,
+            message: "Internal Server Error",
+        });
+    }
+};
+
 
 
 module.exports = { createProductController,
                    getProductController,
                    updateProductController,
                    deleteProductController,
-                   listProductController };
+                   listProductController,
+                   viewProductController
+                };

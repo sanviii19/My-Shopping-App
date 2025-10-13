@@ -1,4 +1,4 @@
-import { useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { Navbar } from "../components/Navbar";
 import { useEffect } from "react";
 import { GridLoader } from "react-spinners";
@@ -13,6 +13,7 @@ const SearchPage = () => {
     const [products, setProducts] = useState([]);
     const [total, setTotal] = useState(0);
     const [page, setPage] = useState(1);
+    const Navigate = useNavigate();
 
     const searchText = (query.get("text"));
 
@@ -37,18 +38,20 @@ const SearchPage = () => {
     }
 
     // Reset page to 1 when search text changes
-    // useEffect(() => {
-    //     setPage(1);
-    // }, [searchText]);
-
     useEffect(() => {
         setPage(1);
+    }, [searchText]);
+
+    // Fetch products when page changes
+    useEffect(() => {
         getAllProducts();
-    }, [searchText, page]);
+    }, [page, searchText]);
     
+    const handleViewProduct = (id) => {
+        Navigate(`/view/${id}`);
+    }
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
-            <Navbar />
             <div className="pt-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex-1 flex flex-col">
                 {searchText && (
                     <div className="mb-6">
@@ -72,7 +75,10 @@ const SearchPage = () => {
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                                 {products.map((elem) => (
-                                    <div key={elem._id} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100">
+                                    <div key={elem._id} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100 scale-100 hover:scale-[1.02] transform"
+                                        role="button"
+                                        onClick={() => handleViewProduct(elem._id)}
+                                    >
                                         <div className="relative w-full h-48 bg-gray-100 rounded-t-lg overflow-hidden">
                                             <img 
                                                 src={elem.images?.[0]} 
