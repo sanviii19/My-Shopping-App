@@ -8,9 +8,14 @@ const placeOrderController = async (req, res) => {
     try {
         console.log("--------- inside placeOrderController ----------");
         console.log("Controller received body:", req.body);
+        console.log("req.currentUser:", JSON.stringify(req.currentUser, null, 2));
+        console.log("req.currentUser._id:", req.currentUser._id);
+        console.log("req.currentUser.id:", req.currentUser.id);
         const { fullName, streetAddress, city, state, primaryContact, alternateContact } = req.body;
 
-        const { id: userId } = req.currentUser;
+        // Try both _id and id for backward compatibility during transition
+        const userId = req.currentUser._id || req.currentUser.id;
+        console.log("Extracted userId:", userId);
 
         const cartItems = await CartModel.find({
             userId: userId,
@@ -52,6 +57,7 @@ const placeOrderController = async (req, res) => {
         //     });
         //     return;
         // }
+        console.log("----- starting Session -----");
 
         const session = await mongoose.startSession();
 
@@ -60,40 +66,45 @@ const placeOrderController = async (req, res) => {
         let paymentResult = null;
 
         try {
+            console.log("----- Transaction started -----");
             await session.withTransaction(async () => {
                 const productsToOrder = [];
 
                 for (let cartItem of cartItems) {
-                    const { productId, cartQuantity } = cartItem;
+                    const { productId: productId, cartQuantity } = cartItem;
                     
                     // Validate ObjectId format
                     if (!mongoose.Types.ObjectId.isValid(productId)) {
                         throw new Error(`Invalid product ID format: ${productId}`);
                     }
-                    
+                    console.log("🟡 : productId:", productId);
+
                     const existingProduct = await ProductModel.findById(productId).lean();
 
+                    console.log("🟡 : existingProduct:", existingProduct);
+                    console.log("🟡 : cartItem:", cartItem); 
+
+                    productsToOrder.push({
+                        product: cartItem.productId,
+                        cartQuantity: cartItem.cartQuantity,
+                        price: existingProduct.price,
+                    });
+
+                    totalAmount += cartItem.cartQuantity * existingProduct.price;
+
+                    console.log("🟡 : totalAmount so far:", totalAmount);
+
                     if (!existingProduct) {
-                        throw new Error(`Product with ID ${productId} not found in the database!`);
+                        throw new Error("Invalid product in the cart!");
                     } else if (existingProduct.quantity < cartQuantity) {
                         throw new Error("Some items are out of stock!");
                     } else {
-                        productsToOrder.push({
-                            product: productId,
-                            cartQuantity: cartQuantity,
-                            price: existingProduct.price,
-                        });
-
-                        totalAmount += cartQuantity * existingProduct.price;
-
                         const updatedProduct = await ProductModel.findByIdAndUpdate(productId, {
                             $inc: { quantity: -1 * cartQuantity },
                         }).session(session);
                         console.log("🟡 : updatedProduct:", updatedProduct);
 
-                        if (!updatedProduct) {
-                            throw new Error("Product not found during stock update!");
-                        } else if (updatedProduct.quantity < 0) {
+                        if (updatedProduct.quantity < 0) {
                             throw new Error("Some items are out of stock!");
                         }
                     }
@@ -102,8 +113,8 @@ const placeOrderController = async (req, res) => {
                 newOrder = await OrderModel.create(
                     [
                         {
-                            user: userId,
-                            products: productsToOrder,
+                            userId: userId,
+                            productIds: productsToOrder,
                             address: `Name:${fullName}\n Address:${streetAddress}\n City: ${city}\n State: ${state}`,
                             contactNumbers: [primaryContact, alternateContact],
                         },
@@ -118,37 +129,24 @@ const placeOrderController = async (req, res) => {
                         orderId: newOrder[0]._id,
                         primaryContact: primaryContact,
                     });
+                }catch(err){
+                    session.abortTransaction();
+                    throw new Error(err.message || "Payment Gateway Error");
+                }
                     
                     // Update order with payment details if payment session was created
-                    await OrderModel.findByIdAndUpdate(
-                        newOrder[0]._id,
-                        {
-                            paymentDetails: paymentResult,
-                            paymentSessionId: paymentResult.payment_session_id,
-                        },
-                        { session: session }
-                    );
-
-                    console.log(`payment session Id ${paymentResult.payment_session_id}`);
-                    
-                } catch (err) {
-                    console.log("⚠️ Payment session creation failed:", err.message);
-                    console.log("📦 Order will be placed without payment processing");
-                    
-                    // Continue without payment - update order to indicate no payment session
-                    await OrderModel.findByIdAndUpdate(
-                        newOrder[0]._id,
-                        {
-                            paymentDetails: { error: "Payment gateway not configured" },
-                            paymentSessionId: null,
-                        },
-                        { session: session }
-                    );
-                    
-                    // Set paymentResult to null to indicate no payment session
-                    paymentResult = null;
-                }
+                await OrderModel.findByIdAndUpdate(
+                    newOrder[0]._id,
+                    {
+                        paymentDetails: paymentResult,
+                        paymentSessionId: paymentResult.payment_session_id,
+                    },
+                    { session: session }
+                );
             });
+
+            console.log(`payment session Id ${paymentResult.payment_session_id}`);
+
         } catch (err) {
             console.log("----- Transaction Error -----", err.message);
             res.status(409).json({
@@ -163,26 +161,31 @@ const placeOrderController = async (req, res) => {
             userId: userId,
         });
 
-        const responseData = {
-            orderId: newOrder[0]._id,
-        };
-        
-        // Add payment session ID if payment was processed
-        if (paymentResult && paymentResult.payment_session_id) {
-            responseData.paymentSessionId = paymentResult.payment_session_id;
-            responseData.paymentDetails = paymentResult;
-        }
-
-        res.status(201).json({
+         res.status(201).json({
             isSuccess: true,
-            message: paymentResult ? "Order placed! Payment session created." : "Order placed! Payment processing skipped.",
+            message: "Order placed!",
             data: {
                 paymentDetails: paymentResult,
                 orderId: newOrder[0]._id,
-            }
+            },
         });
+
+        // const responseData = {
+        //     orderId: newOrder[0]._id,
+        // };
+        
+        // // Add payment session ID if payment was processed
+        // if (paymentResult && paymentResult.payment_session_id) {
+        //     responseData.paymentSessionId = paymentResult.payment_session_id;
+        //     responseData.paymentDetails = paymentResult;
+        // }
+
     } catch (err) {
-        console.log("--------- error in placeOrderController ----------", err.message);
+        console.log("--------- error in placeOrderController ----------");
+        console.log("Error message:", err.message);
+        console.log("Error name:", err.name);
+        console.log("Error code:", err.code);
+        console.log("Full error:", err);
 
         if (err.name === "ValidationError" || err.code == 11000) {
             res.status(400).json({
@@ -209,7 +212,7 @@ const getPaymentStatusController = async (req, res) => {
         const paymentDetails = await getPaymentDetails({orderId});
 
         if(paymentDetails.length !== 0){    
-            const {payment_status} = paymentDetails;
+            const {payment_status} = paymentDetails[0];
 
             if(payment_status !== null || payment_status !== undefined){
                 await OrderModel.findByIdAndUpdate(orderId, {
@@ -287,7 +290,7 @@ const checkForAbandonedOrders = async () => {
                     });
                 }
             } else {
-                const { productIds: products } = order;
+                const { products } = order;
                 for (let product of products) {
                     await ProductModel.findByIdAndUpdate(
                         product.product,
@@ -300,7 +303,7 @@ const checkForAbandonedOrders = async () => {
                 await OrderModel.findByIdAndUpdate(
                     order._id,
                     {
-                        paymentStatus: "ABANDONDED",
+                        paymentStatus: "ABANDONED",
                     },
                     { new: true }
                 );
@@ -309,8 +312,8 @@ const checkForAbandonedOrders = async () => {
  
         console.log("----- Abandoned Orders Checked -----");
     }catch(err){
-        console.log("----- Error in checkForAbandonedOrders -----", err.message);
-        // console.log(err.message);
+        console.log("----- Error in checkForAbandonedOrders -----");
+        console.log(err.message);
     }
 }
 

@@ -30,8 +30,8 @@ app.use(express.json());
 
 app.use("/api/v1", apiRouter);
 
-cron.schedule('*/1 * * * *', () => {
-  console.log('running a task every minute');
+cron.schedule('*/30 * * * *', () => {
+  console.log('running a task every 30 minutes');
 
   checkForAbandonedOrders();
 });

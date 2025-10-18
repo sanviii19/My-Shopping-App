@@ -49,7 +49,7 @@ const PaymentPage = () => {
         let currentOrderId = orderId;
 
         if(currentPaymentSessionId === ""){
-            const name = e.target.fullName.value;
+            const fullName = e.target.fullName.value;
             const email = e.target.email.value;
             const primaryContact = e.target.primaryContact.value;
             const alternateContact = e.target.alternateContact.value;
@@ -59,15 +59,15 @@ const PaymentPage = () => {
             const state = e.target.state.value;
             const pinCode = e.target.pinCode.value;
             const addressType = e.target.addressType.value;
-
+            
             // Validate required fields
-            if (!name || !email || !primaryContact || !streetAddress || !city || !state || !pinCode) {
+            if (!fullName || !email || !primaryContact || !streetAddress || !city || !state || !pinCode) {
                 showErrorToast("Please fill all required fields");
                 return;
             }
 
             console.log("Creating order with data:", {
-                fullName: name, 
+                fullName,
                 email, 
                 streetAddress, 
                 city, 
@@ -82,8 +82,8 @@ const PaymentPage = () => {
 
             try {
                 setLoading(true);
-                const {paymentSessionId, orderId} = await handlePlaceOrder({
-                    fullName: name, 
+                const {paymentSessionId : pId, orderId} = await handlePlaceOrder({
+                    fullName,
                     email, 
                     streetAddress, 
                     city, 
@@ -108,9 +108,6 @@ const PaymentPage = () => {
                     setLoading(false);
                     return;
                 }
-                
-                setPaymentSessionId(currentPaymentSessionId);
-                setOrderId(currentOrderId);
             
             } catch {
                 console.log("error in creating payment session");
@@ -137,6 +134,7 @@ const PaymentPage = () => {
         }
 
         let checkoutOptions = {
+            // paymentSessionId: "session_lYoR0VbQlRxRmxdpWzjM7rV7AI86Vo4qITwidciPM8KFmIgbTznQefr0qMg2_n3-42eMaQABpqBKHWkbvjPoSveSdPo2i--8KIKHyh_wGNqXPyDuSbvB2hjElMcuBQpaymentpayment",
             paymentSessionId: currentPaymentSessionId,
             redirectTarget: "_modal",
         };

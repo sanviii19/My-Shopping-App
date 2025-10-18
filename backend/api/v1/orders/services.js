@@ -3,25 +3,18 @@ const { cashfreePayment } = require("../../../config/cashfreePayment");
 const createPaymentSession = async ({ totalAmount, orderId, userId, primaryContact }) => {
         console.log("-----inside createPaymentSession -----");
 
-        // Validate required parameters
-        if (!userId) {
-            throw new Error("Customer ID is required for payment processing");
-        }
-        if (!primaryContact) {
-            throw new Error("Customer phone number is required for payment processing");
-        }
-        if (!totalAmount || totalAmount <= 0) {
-            throw new Error("Valid order amount is required for payment processing");
-        }
-        if (!orderId) {
-            throw new Error("Order ID is required for payment processing");
-        }
-
         // Check if Cashfree credentials are configured
         if (!process.env.CASHFREE_APP_ID || !process.env.CASHFREE_SECRET_KEY) {
             console.log("⚠️ Cashfree credentials not configured, order will be placed without payment processing");
             throw new Error("Payment gateway not configured");
         }
+
+        console.log(`🟡 : { totalAmount, orderId, userId, primaryContact }:`, {
+            totalAmount,
+            orderId,
+            userId,
+            primaryContact,
+        });
 
         var request = {
             "order_amount": totalAmount,
@@ -37,7 +30,7 @@ const createPaymentSession = async ({ totalAmount, orderId, userId, primaryConta
         };
         
         const paymentSession = new Promise((resolve, reject) => {
-        cashFreePaymentGateway
+        cashfreePayment
             .PGCreateOrder(request)
             .then((response) => {
                 console.log("---- Order created successfully for", userId, "----");
@@ -54,7 +47,8 @@ const createPaymentSession = async ({ totalAmount, orderId, userId, primaryConta
 
 const getPaymentDetails = async ({orderId}) => {
     const paymentDetails = new Promise( (resolve, reject) => {
-    cashfreePayment.PGOrderFetchPayments(orderId)
+    cashfreePayment
+    .PGOrderFetchPayments(orderId)
         .then((response) => {
             resolve(response.data);
         }).catch((error) => {

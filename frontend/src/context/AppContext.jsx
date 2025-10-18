@@ -8,6 +8,7 @@ const AppContextProvider = ({children}) => {
       const [cart, setCart] = useState([]);
       const [appLoading, setAppLoading] = useState(true);
       const [placingOrder, setPlacingOrder] = useState(false);
+      const [updatingCartState, setUpdatingCartState] = useState(false);
     
       const { isLoggedIn } = user;
 
@@ -39,10 +40,17 @@ const AppContextProvider = ({children}) => {
         }
       }
 
-        useEffect(() => {
+      useEffect(() => {
         authenticateUser();
-        getCartItems();
       }, []);
+
+      useEffect(() => {
+        if (isLoggedIn) {
+            getCartItems();
+        } else {
+            setCart([]);
+        }
+    }, [isLoggedIn]);
 
       // add logout logic
       const handleLogout = async () => {
@@ -69,6 +77,7 @@ const AppContextProvider = ({children}) => {
 
       const getCartItems = async () => {
         try {
+          setUpdatingCartState(true);
           const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/cart`, {
             method: "GET",
             headers: {
@@ -77,34 +86,41 @@ const AppContextProvider = ({children}) => {
             credentials: "include"
           });
           const result = await response.json();
-          setCart(result.data);
+          setCart(result.data.cart);
         } catch (err) {
+          console.error(err);
           showErrorToast("Error fetching cart items");
+        }finally{
+          setUpdatingCartState(false);
         }
       }
 
       const addToCart = async (productId) => {
         try {
+          setUpdatingCartState(true);
           const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/cart/${productId}`, {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ productId }),
             credentials: "include"
           });
           
-          // const result = await response.json();
-          // setCart(result.data);
-          await getCartItems();
+          console.log("Add to cart response:", response);
 
+          const result = await response.json();
+          if (result.isSuccess) {
+              setCart(result.data.cart);
+          } else {
+              showErrorToast(result.message);
+            }
         } catch (err) {
-          showErrorToast("Error adding to cart");
+            showErrorToast(`Error during adding product to cart: ${err.message}`);
+        } finally {
+            setUpdatingCartState(false);
         }
       }
 
       const removeFromCart = async (productId) => {
         try {
+          setUpdatingCartState(true);
           const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/cart/${productId}`, {
             method: "DELETE",
             headers: {
@@ -112,16 +128,18 @@ const AppContextProvider = ({children}) => {
             },
             credentials: "include"
           });
-          
-          if (response.ok) {
-            // Refresh cart items from server after successful removal
-            await getCartItems();
+
+          console.log("🟡 : response of removeFromCart:", response);
+          const result = await response.json();
+          if (result.isSuccess) {
+              setCart(result.data.cart);
           } else {
-            const result = await response.json();
-            showErrorToast(result.message || "Error removing item from cart");
-          }
+              showErrorToast(result.message);
+            }
         } catch (err) {
-          showErrorToast("Error removing item from cart");
+            showErrorToast(`Error during removing product from cart: ${err.message}`);
+        } finally {
+            setUpdatingCartState(false);
         }
       }
 
@@ -130,26 +148,26 @@ const AppContextProvider = ({children}) => {
         setUser(data);
       }
 
-      const clearCart = async () => {
-        try {
-          const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/cart`, {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            credentials: "include"
-          });
+      // const clearCart = async () => {
+      //   try {
+      //     const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/cart`, {
+      //       method: "DELETE",
+      //       headers: {
+      //         "Content-Type": "application/json"
+      //       },
+      //       credentials: "include"
+      //     });
           
-          if (response.ok) {
-            setCart([]);
-          } else {
-            const result = await response.json();
-            showErrorToast(result.message || "Error clearing cart");
-          }
-        } catch (err) {
-          showErrorToast("Error clearing cart");
-        }
-      }
+      //     if (response.ok) {
+      //       setCart([]);
+      //     } else {
+      //       const result = await response.json();
+      //       showErrorToast(result.message || "Error clearing cart");
+      //     }
+      //   } catch (err) {
+      //     showErrorToast("Error clearing cart");
+      //   }
+      // }
 
       const handlePlaceOrder = async ({fullName, email, streetAddress, city, state, primaryContact, alternateContact}) => {
            try{
@@ -163,35 +181,47 @@ const AppContextProvider = ({children}) => {
           const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/orders`, {
             method: "POST",
             credentials: "include",
-            body: JSON.stringify({ fullName, email, streetAddress, city, state, primaryContact, alternateContact }),
+            body: JSON.stringify({ fullName, streetAddress, city, state, primaryContact, alternateContact }),
             headers: {
               "Content-Type": "application/json"
             }
           })
+
+           console.log("🟡 : response:", response);
+
           const result = await response.json();
           
           if(result.isSuccess){
-            // If payment session ID is returned, return it for Cashfree payment
-            if (result.paymentSessionId) {
-              return { paymentSessionId: result.data.paymentDetails.payment_session_id, orderId: result.data.orderId };
-            }
-            
-            // If no payment session ID, this is a direct order (no payment gateway)
+
             showSuccessToast(result.message);
+                setCart([]);
+                return {
+                    paymentSessionId: result.data.paymentDetails.payment_session_id,
+                    orderId: result.data.orderId,
+                };
+
+
+            // If payment session ID is returned, return it for Cashfree payment
+            // if (result.paymentSessionId) {
+            //   return { paymentSessionId: result.data.paymentDetails.payment_session_id, orderId: result.data.orderId };
+            // }
             
-            // Show updated stock information
-            if (result.data && result.data.orderedItems) {
-              const stockUpdates = result.data.orderedItems.map(item => 
-                `${item.title}: ${item.orderedQuantity} ordered, ${item.newStock} remaining`
-              ).join('\n');
+            // // If no payment session ID, this is a direct order (no payment gateway)
+            // showSuccessToast(result.message);
+            
+            // // Show updated stock information
+            // if (result.data && result.data.orderedItems) {
+            //   const stockUpdates = result.data.orderedItems.map(item => 
+            //     `${item.title}: ${item.orderedQuantity} ordered, ${item.newStock} remaining`
+            //   ).join('\n');
               
-              // You can display this in a modal or notification
-              console.log('Stock Updates:', stockUpdates);
-            }
+            //   // You can display this in a modal or notification
+            //   console.log('Stock Updates:', stockUpdates);
+            // }
             
-            // Clear cart both locally and on server
-            await clearCart();
-            return null; // No payment session needed
+            // // Clear cart both locally and on server
+            // await clearCart();
+            // return null; // No payment session needed
           }else{  
             showErrorToast(result.message);
             return null;
@@ -215,7 +245,8 @@ const AppContextProvider = ({children}) => {
         addToCart,
         removeFromCart,
         handlePlaceOrder,
-        placingOrder
+        placingOrder,
+        updatingCartState
       };
 
      return (
@@ -223,8 +254,9 @@ const AppContextProvider = ({children}) => {
      )
 }
 
-const useAuthContext = () => {
+function useAuthContext() {
     return useContext(AuthContext);
 }
 
-export { useAuthContext, AppContextProvider };
+export default AppContextProvider;
+export { useAuthContext };

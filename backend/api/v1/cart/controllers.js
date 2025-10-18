@@ -3,7 +3,7 @@ const { CartModel } = require("../../../models/cartSchema");
 const addToCartController = async (req, res) => {
     try{
         const {productId} = req.params;
-        const {id: _id} = req.currentUser;
+        const {_id} = req.currentUser;
 
         const cartItem = await CartModel.findOne({
             userId : _id,
@@ -12,8 +12,7 @@ const addToCartController = async (req, res) => {
 
         if(cartItem){
             await CartModel.findByIdAndUpdate(cartItem._id, {
-                // $inc: { quantity: 1 }   better way to increment
-                cartQuantity : cartItem.cartQuantity + 1,
+                $inc: { cartQuantity: 1 }  // Use $inc for atomic increment
             });
         }else{
             await CartModel.create({
@@ -22,9 +21,19 @@ const addToCartController = async (req, res) => {
             });
         }
 
-        res.status(201).json({
+        const cartItems = await CartModel.find({
+            userId: _id,
+        })
+            .populate("productId")
+            .lean();
+
+        res.status(201);
+        res.json({
             isSuccess: true,
-            message: "Product Added",
+            message: "Product added to cart!",
+            data: {
+                cart: cartItems,
+            },
         });
     }
     catch(err){
@@ -49,7 +58,7 @@ const addToCartController = async (req, res) => {
 
 const getCartItemsController = async (req, res) => {
     try{
-        const {id: _id} = req.currentUser;
+        const {_id} = req.currentUser;
 
         const cartItems = await CartModel.find({
             userId : _id,
@@ -57,8 +66,11 @@ const getCartItemsController = async (req, res) => {
 
         res.status(200).json({
             isSuccess: true,
-            message: "Cart Fetched",
-            data: cartItems,
+            message: "Cart fetched successfully",
+            data: {
+                cartItems: cartItems,
+                cartCount: cartItems.length,
+            },
         });
     }
     catch(err){
@@ -75,35 +87,42 @@ const getCartItemsController = async (req, res) => {
 const removeFromCartController = async (req, res) => {
     try{
         const {productId} = req.params;
-        const {id: _id} = req.currentUser;
+        const {_id} = req.currentUser;
 
         const cartItem = await CartModel.findOne({
             userId : _id,
             productId : productId,
         });
 
-        if(!cartItem){
-            res.status(404).json({
-                isSuccess: false,
-                message: "Item not found in cart",
-                data: {},
-            });
-            return;
-        }
-
-        if(cartItem.cartQuantity > 1){
-            // Decrease quantity by 1
-            await CartModel.findByIdAndUpdate(cartItem._id, {
-                cartQuantity : cartItem.cartQuantity - 1,
-            });
+        if (cartItem) {
+            if (cartItem.cartQuantity == 1) {
+                await CartModel.findByIdAndDelete(cartItem._id);
+            } else {
+                await CartModel.findByIdAndUpdate(cartItem._id, {
+                    cartQuantity: cartItem.cartQuantity - 1,
+                    // $inc: { cartQuantity: -1 }, // try to ask
+                });
+            }
         } else {
-            // Remove item completely if quantity is 1
-            await CartModel.findByIdAndDelete(cartItem._id);
+            res.status(400).json({
+                isSuccess: false,
+                message: "Product not in the cart!",
+            });
         }
 
-        res.status(200).json({
+        const cartItems = await CartModel.find({
+            userId: _id,
+        })
+            .populate("productId")
+            .lean();
+
+        res.status(201);
+        res.json({
             isSuccess: true,
-            message: "Item removed from cart",
+            message: "Product removed from cart!",
+            data: {
+                cart: cartItems,
+            },
         });
     }
     catch(err){
@@ -128,7 +147,7 @@ const removeFromCartController = async (req, res) => {
 
 const clearCartController = async (req, res) => {
     try{
-        const {id: _id} = req.currentUser;
+        const {_id} = req.currentUser;
 
         await CartModel.deleteMany({
             userId : _id,
