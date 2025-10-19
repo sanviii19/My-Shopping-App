@@ -16,9 +16,21 @@ const Navbar = ({searchBar = true}) => {
         navigate(`/search?text=${searchText}`);
     };
 
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
+
     const handleLogoutAndNavigate = async () => {
-        await handleLogout();
-        navigate("/login");
+        const success = await handleLogout();
+        if (success) {
+            // Force a full page reload to ensure the routing switches to unauthenticated routes
+            window.location.href = "/login";
+        } else {
+            // If logout failed, still try to navigate to login
+            navigate("/login");
+        }
     };
 
     return (
@@ -38,6 +50,7 @@ const Navbar = ({searchBar = true}) => {
                                     onChange={(e) =>
                                         setSearchText(e.target.value)
                                     }
+                                    onKeyPress={handleKeyPress}
                                 />
                                 <button className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1 bg-blue-700 hover:bg-blue-800 text-white rounded-md transition-colors duration-200 shadow-sm"
                                     onClick={handleSearch}>

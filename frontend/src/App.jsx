@@ -18,9 +18,9 @@ import { PaymentPage } from "./pages/PaymentPage";
 import { OrdersPage } from "./pages/OrdersPage";
 
 const App = () => {
-  const { appLoading, isLoggedIn } = useAuthContext(); 
+  const { appLoading, isLoggedIn, isLoggingOut } = useAuthContext(); 
 
-  if (appLoading) {
+  if (appLoading || isLoggingOut) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <GridLoader color="#3b82f6" size={15} />

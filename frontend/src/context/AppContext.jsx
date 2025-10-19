@@ -9,6 +9,7 @@ const AppContextProvider = ({children}) => {
       const [appLoading, setAppLoading] = useState(true);
       const [placingOrder, setPlacingOrder] = useState(false);
       const [updatingCartState, setUpdatingCartState] = useState(false);
+      const [isLoggingOut, setIsLoggingOut] = useState(false);
     
       const { isLoggedIn } = user;
 
@@ -55,7 +56,7 @@ const AppContextProvider = ({children}) => {
       // add logout logic
       const handleLogout = async () => {
         try{
-          setAppLoading(true);
+          setIsLoggingOut(true);
           const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/auth/logout`, {
             method: "GET",
             credentials: "include"
@@ -63,15 +64,18 @@ const AppContextProvider = ({children}) => {
       
           if(response.status === 200){
             showSuccessToast("Logged out successfully");
-            setUser({isLoggedIn: false});
+            // Don't set user state here - let the page reload handle it
+            return true; // Return success indicator
           }else{  
             const data = await response.json();
             showErrorToast(data.message);
+            setIsLoggingOut(false);
+            return false;
           }
         }catch(err){
           showErrorToast("Error logging out. Please try again.");
-        }finally{
-          setAppLoading(false);
+          setIsLoggingOut(false);
+          return false;
         }
       }
 
@@ -86,9 +90,13 @@ const AppContextProvider = ({children}) => {
             credentials: "include"
           });
           const result = await response.json();
-          setCart(result.data.cart);
+          // Fix: API returns 'cartItems' not 'cart'
+          const cartData = Array.isArray(result.data?.cartItems) ? result.data.cartItems : [];
+          setCart(cartData);
         } catch (err) {
           console.error(err);
+          // Set empty array on error
+          setCart([]);
           showErrorToast("Error fetching cart items");
         }finally{
           setUpdatingCartState(false);
@@ -97,21 +105,27 @@ const AppContextProvider = ({children}) => {
 
       const addToCart = async (productId) => {
         try {
+          console.log("Adding to cart - productId:", productId);
+          console.log("Cart before add:", cart);
           setUpdatingCartState(true);
           const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/cart/${productId}`, {
             method: "POST",
             credentials: "include"
           });
           
-          console.log("Add to cart response:", response);
-
           const result = await response.json();
+          console.log("Add to cart API response:", result);
           if (result.isSuccess) {
-              setCart(result.data.cart);
+              // Fix: API returns 'cartItems' not 'cart'
+              const newCartItems = Array.isArray(result.data.cartItems) ? result.data.cartItems : [];
+              console.log("Setting new cart items:", newCartItems);
+              setCart(newCartItems);
+              showSuccessToast("Product added to cart!");
           } else {
               showErrorToast(result.message);
             }
         } catch (err) {
+            console.error("Error in addToCart:", err);
             showErrorToast(`Error during adding product to cart: ${err.message}`);
         } finally {
             setUpdatingCartState(false);
@@ -129,10 +143,10 @@ const AppContextProvider = ({children}) => {
             credentials: "include"
           });
 
-          console.log("🟡 : response of removeFromCart:", response);
           const result = await response.json();
           if (result.isSuccess) {
-              setCart(result.data.cart);
+              // Fix: API returns 'cartItems' not 'cart'
+              setCart(Array.isArray(result.data.cartItems) ? result.data.cartItems : []);
           } else {
               showErrorToast(result.message);
             }
@@ -246,7 +260,8 @@ const AppContextProvider = ({children}) => {
         removeFromCart,
         handlePlaceOrder,
         placingOrder,
-        updatingCartState
+        updatingCartState,
+        isLoggingOut
       };
 
      return (
