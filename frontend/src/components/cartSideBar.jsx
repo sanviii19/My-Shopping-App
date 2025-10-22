@@ -18,7 +18,7 @@ const CartSideBar = () => {
     const totalPrice = Array.isArray(cart) ? cart.reduce((sum, item) => sum + (item.productId.price * item.cartQuantity), 0) : 0;
 
     return (
-        <div className="w-80 -mt-2 bg-white border-l border-gray-200 h-full flex flex-col shadow-xl overflow-hidden">
+        <div className=" -mt-2 w-full h-full bg-white border-l border-gray-200 flex flex-col shadow-xl overflow-hidden">
             {/* Header */}
             <div className="flex-shrink-0 bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 flex items-center justify-between">
                 <div className="flex items-center">

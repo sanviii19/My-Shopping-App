@@ -7,6 +7,7 @@ const AppContextProvider = ({children}) => {
       const [user, setUser] = useState({isLoggedIn: false});
       const [cart, setCart] = useState([]);
       const [appLoading, setAppLoading] = useState(true);
+      const [cartLoaded, setCartLoaded] = useState(false);
       const [placingOrder, setPlacingOrder] = useState(false);
       const [updatingCartState, setUpdatingCartState] = useState(false);
       const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -50,6 +51,7 @@ const AppContextProvider = ({children}) => {
             getCartItems();
         } else {
             setCart([]);
+            setCartLoaded(true);
         }
     }, [isLoggedIn]);
 
@@ -100,6 +102,7 @@ const AppContextProvider = ({children}) => {
           showErrorToast("Error fetching cart items");
         }finally{
           setUpdatingCartState(false);
+          setCartLoaded(true);
         }
       }
 
@@ -116,8 +119,8 @@ const AppContextProvider = ({children}) => {
           const result = await response.json();
           console.log("Add to cart API response:", result);
           if (result.isSuccess) {
-              // Fix: API returns 'cartItems' not 'cart'
-              const newCartItems = Array.isArray(result.data.cartItems) ? result.data.cartItems : [];
+              // Backend returns 'cart' not 'cartItems'
+              const newCartItems = Array.isArray(result.data.cart) ? result.data.cart : [];
               console.log("Setting new cart items:", newCartItems);
               setCart(newCartItems);
               showSuccessToast("Product added to cart!");
@@ -145,8 +148,8 @@ const AppContextProvider = ({children}) => {
 
           const result = await response.json();
           if (result.isSuccess) {
-              // Fix: API returns 'cartItems' not 'cart'
-              setCart(Array.isArray(result.data.cartItems) ? result.data.cartItems : []);
+              // Backend returns 'cart' not 'cartItems'
+              setCart(Array.isArray(result.data.cart) ? result.data.cart : []);
           } else {
               showErrorToast(result.message);
             }
@@ -256,6 +259,7 @@ const AppContextProvider = ({children}) => {
         appLoading,
         isLoggedIn,
         cart,
+        cartLoaded,
         addToCart,
         removeFromCart,
         handlePlaceOrder,

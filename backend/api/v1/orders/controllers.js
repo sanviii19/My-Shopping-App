@@ -243,9 +243,12 @@ const getPaymentStatusController = async (req, res) => {
 const getOrdersForClientController = async (req, res) => {
     try{
         console.log("----- getOrdersForClientController -----");
-        const orders = await OrderModel.find().select("-lastUpdatedpaymentDetails -paymentDetails -paymentSessionId")
-        .populate("user", "email")
-        .populate("products.product", "name price");
+        const { _id } = req.currentUser;
+        
+        const orders = await OrderModel.find({ userId: _id })
+        .select("-lastUpdatedpaymentDetails -paymentDetails -paymentSessionId")
+        .populate("userId", "email")
+        .populate("productIds.product", "name price");
 
         res.status(200).json({
             isSuccess: true,

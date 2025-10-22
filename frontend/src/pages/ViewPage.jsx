@@ -40,7 +40,7 @@ const ViewPage = () => {
         if(isLoggedIn && productInfo?._id){
             // add to the cart
             addToCart(productInfo._id);
-            showSuccessToast("Product added to cart!");
+            // Success toast is handled in addToCart function
         }
     }
 

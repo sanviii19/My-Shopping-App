@@ -11,6 +11,7 @@ const sendUserInfoController = async (req, res) => {
                 user: {
                     email: user.email,
                     _id: user._id,
+                    role: user.role,
                 }
             },
         });
