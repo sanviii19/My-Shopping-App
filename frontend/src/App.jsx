@@ -11,7 +11,6 @@ import { BasicLayout } from "./pages/BasicLayout";
 import { AdminLayout } from "./pages/Admin/AdminLayout";
 import { AdminDashboard } from "./pages/Admin/AdminDashboard";
 import { AdminOrdersPage } from "./pages/Admin/AdminOrdersPage";
-import { AdminFeedbacksPage } from "./pages/Admin/AdminFeedbacksPage";
 import { AdminProductsPage } from "./pages/Admin/AdminProductsPage";
 import { AdminContextProvider } from "./context/AdminContext";
 import { PaymentPage } from "./pages/PaymentPage";
@@ -58,7 +57,6 @@ const App = () => {
               <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="orders" element={<AdminOrdersPage />} />
               <Route path="products" element={<AdminProductsPage />} />
-              <Route path="feedbacks" element={<AdminFeedbacksPage />} />
             </Route>
             <Route path="/payment" element={<PaymentPage />} />
           <Route path="*" element={<PageNotFound />} />

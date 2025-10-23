@@ -14,10 +14,6 @@ const ROUTES_CONFIG = [
     {
         title: "Products",
         route: "/admin/products"
-    },
-    {
-        title: "Feedbacks",
-        route: "/admin/feedbacks"
     }
 ]
 

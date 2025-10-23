@@ -1,14 +1,15 @@
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { IoMenuSharp } from "react-icons/io5";
-import { useState, useContext, useRef, useEffect } from "react";
+import { useState, useContext, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { useAuthContext } from "../context/AppContext";
 
-const Navbar = ({searchBar = true}) => {
+const Navbar = forwardRef(({searchBar = true}, ref) => {
     const [ query] = useSearchParams();
     const { isLoggedIn, handleLogout, user } = useAuthContext();
     const navigate = useNavigate();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
+    const searchInputRef = useRef(null);
 
     // Debug logging to check user object
     console.log('Current user object:', user);
@@ -17,6 +18,15 @@ const Navbar = ({searchBar = true}) => {
     const searchTextValue = query.get("text");
 
     const [searchText, setSearchText] = useState(searchTextValue || "");
+
+    // Expose focus method to parent components
+    useImperativeHandle(ref, () => ({
+        focusSearchInput: () => {
+            if (searchInputRef.current) {
+                searchInputRef.current.focus();
+            }
+        }
+    }));
     
     const handleSearch = () => {
         navigate(`/search?text=${searchText}`);
@@ -86,6 +96,7 @@ const Navbar = ({searchBar = true}) => {
                         <div className="flex-1 max-w-xl mx-4">
                             <div className="relative">
                                 <input  
+                                    ref={searchInputRef}
                                     className="w-full px-4 py-2 rounded-lg border-2 border-blue-300 focus:border-blue-400 focus:outline-none bg-white/10 backdrop-blur-sm text-white placeholder-blue-100 shadow-inner"
                                     placeholder="Search products..."
                                     value={searchText}
@@ -163,6 +174,6 @@ const Navbar = ({searchBar = true}) => {
             </div>
         </div>
     );
-};
+});
 
 export { Navbar };

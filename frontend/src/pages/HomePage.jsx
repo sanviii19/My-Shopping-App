@@ -1,8 +1,10 @@
 import { Navbar } from "../components/Navbar";
 import { useNavigate } from "react-router";
+import { useNavbar } from "./BasicLayout";
 
 const HomePage = () => {
     const navigate = useNavigate();
+    const { focusSearchInput } = useNavbar();
 
     const categories = [
         { 
@@ -95,15 +97,10 @@ const HomePage = () => {
                                 </p>
                                 <div className="flex flex-col sm:flex-row gap-4">
                                     <button 
-                                        onClick={() => navigate("/search")}
+                                        onClick={focusSearchInput}
                                         className="bg-blue-700 hover:bg-blue-800 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
                                     >
                                         START SHOPPING
-                                    </button>
-                                    <button 
-                                        className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border border-white/30 px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200"
-                                    >
-                                        JOIN NOW
                                     </button>
                                 </div>
                             </div>
