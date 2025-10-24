@@ -3,7 +3,10 @@ const { OrderModel } = require( "../../../../models/orderSchema");
 const getOrdersForAdminController = async (req, res) => {
     try{
         console.log("----- getOrdersForAdminController -----");
-        const orders = await OrderModel.find();
+        const orders = await OrderModel.find()
+            .populate("userId", "email")
+            .populate("productIds.product", "title price images")
+            .sort({ createdAt: -1 });
 
         res.status(200).json({
             isSuccess: true,

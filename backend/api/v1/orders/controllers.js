@@ -214,10 +214,21 @@ const getPaymentStatusController = async (req, res) => {
         if(paymentDetails.length !== 0){    
             const {payment_status} = paymentDetails[0];
 
-            if(payment_status !== null || payment_status !== undefined){
+            if(payment_status !== null && payment_status !== undefined){
+                // Determine order status based on payment status
+                let orderStatus = "pending";
+                if (payment_status === "SUCCESS") {
+                    orderStatus = "completed";
+                } else if (payment_status === "FAILED" || payment_status === "CANCELLED") {
+                    orderStatus = "failed";
+                } else if (payment_status === "PENDING") {
+                    orderStatus = "pending";
+                }
+
                 await OrderModel.findByIdAndUpdate(orderId, {
                     lastUpdatedpaymentDetails: paymentDetails[0],
-                    payment_status: payment_status,
+                    paymentStatus: payment_status,
+                    orderStatus: orderStatus,
                 });
             }else{
                 throw new Error("Payment status key is not present");
@@ -248,7 +259,8 @@ const getOrdersForClientController = async (req, res) => {
         const orders = await OrderModel.find({ userId: _id })
         .select("-lastUpdatedpaymentDetails -paymentDetails -paymentSessionId")
         .populate("userId", "email")
-        .populate("productIds.product", "name price");
+        .populate("productIds.product", "title price images")
+        .sort({ createdAt: -1 });
 
         res.status(200).json({
             isSuccess: true,

@@ -1,7 +1,6 @@
 const sendUserInfoController = async (req, res) => {
     try{
         console.log("-----inside sendUserInfoController -----");
-        // console.log(Object.keys(req));
 
         const user = req.currentUser;
         res.status(200).json({

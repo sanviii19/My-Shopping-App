@@ -18,7 +18,11 @@ const OrdersPage = () => {
 
             const data = await response.json();
             if (response.status === 200) {
-                setOrders(data.data.orders || []);
+                // Sort orders by newest first
+                const sortedOrders = (data.data.orders || []).sort((a, b) => 
+                    new Date(b.createdAt) - new Date(a.createdAt)
+                );
+                setOrders(sortedOrders);
                 console.log("Orders data:", data);
             } else {
                 showErrorToast(data.message);
@@ -52,14 +56,14 @@ const OrdersPage = () => {
         switch (status?.toLowerCase()) {
             case 'pending':
                 return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-            case 'processing':
+            case 'in progress':
                 return 'bg-blue-100 text-blue-800 border-blue-200';
-            case 'shipped':
-                return 'bg-purple-100 text-purple-800 border-purple-200';
-            case 'delivered':
+            case 'completed':
                 return 'bg-green-100 text-green-800 border-green-200';
-            case 'cancelled':
+            case 'failed':
                 return 'bg-red-100 text-red-800 border-red-200';
+            case 'cancelled':
+                return 'bg-gray-100 text-gray-800 border-gray-200';
             default:
                 return 'bg-gray-100 text-gray-800 border-gray-200';
         }
@@ -207,13 +211,26 @@ const OrdersPage = () => {
                                             {productIds?.map(({_id: itemId, cartQuantity, price, product}) => (
                                                 <div key={itemId} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
                                                     <div className="flex items-center space-x-3">
-                                                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                                                            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                                                            </svg>
+                                                        <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                                                            {product?.images && product?.images.length > 0 ? (
+                                                                <img 
+                                                                    src={product.images[0]} 
+                                                                    alt={product?.title || 'Product'} 
+                                                                    className="w-full h-full object-cover"
+                                                                    onError={(e) => {
+                                                                        e.target.style.display = 'none';
+                                                                        e.target.nextSibling.style.display = 'flex';
+                                                                    }}
+                                                                />
+                                                            ) : null}
+                                                            <div className={`w-full h-full flex items-center justify-center ${product?.images && product?.images.length > 0 ? 'hidden' : ''}`}>
+                                                                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                                                </svg>
+                                                            </div>
                                                         </div>
                                                         <div>
-                                                            <p className="font-medium text-gray-900">{product?.name || product?.title || 'Product'}</p>
+                                                            <p className="font-medium text-gray-900">{product?.title || 'Product'}</p>
                                                             <p className="text-sm text-gray-500">Quantity: {cartQuantity}</p>
                                                         </div>
                                                     </div>

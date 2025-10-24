@@ -10,7 +10,7 @@ const LoginPage = () => {
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
-    const { handleSetUser } = useAuthContext();
+    const { authenticateUser } = useAuthContext();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -33,9 +33,8 @@ const LoginPage = () => {
 
             if(response.status == 200){
                 showSuccessToast("Login Successful!");
-                handleSetUser({
-                    isLoggedIn: true,
-                });
+                // Fetch complete user data including role after successful login
+                await authenticateUser();
                 navigate("/");
             }
             else{

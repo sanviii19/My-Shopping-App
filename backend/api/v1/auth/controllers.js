@@ -95,7 +95,6 @@ const userLoginController = async (req, res) => {
         {
             expiresIn: '1d' // token will expire in 1 day
         });
-        console.log("Generated JWT:", token);
         
         res.cookie("authentication", token, {
             httpOnly: true,

@@ -27,7 +27,6 @@ const AdminOrdersPage = () => {
             if (response.status === 200) {
                 setOrders(data.data.orders);
                 setFilteredOrders(data.data.orders);
-                console.log(data);
             } else {
                 showErrorToast(data.message);
             }
@@ -89,7 +88,8 @@ const AdminOrdersPage = () => {
                     return (a.products?.reduce((sum, p) => sum + (p.price * p.cartQuantity), 0) || 0) - 
                            (b.products?.reduce((sum, p) => sum + (p.price * p.cartQuantity), 0) || 0);
                 default:
-                    return 0;
+                    // Default to newest first
+                    return new Date(b.createdAt) - new Date(a.createdAt);
             }
         });
 
@@ -104,10 +104,14 @@ const AdminOrdersPage = () => {
         switch (status) {
             case 'pending':
                 return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-            case 'In progress':
+            case 'in progress':
                 return 'bg-blue-100 text-blue-800 border-blue-200';
+            case 'completed':
+                return 'bg-green-100 text-green-800 border-green-200';
             case 'failed':
                 return 'bg-red-100 text-red-800 border-red-200';
+            case 'cancelled':
+                return 'bg-gray-100 text-gray-800 border-gray-200';
             default:
                 return 'bg-gray-100 text-gray-800 border-gray-200';
         }
@@ -196,7 +200,7 @@ const AdminOrdersPage = () => {
                         <div>
                             <p className="text-sm text-gray-600">In Progress</p>
                             <p className="text-2xl font-bold text-blue-600">
-                                {orders.filter(o => o.orderStatus === 'In progress').length}
+                                {orders.filter(o => o.orderStatus === 'in progress').length}
                             </p>
                         </div>
                     </div>
@@ -236,7 +240,9 @@ const AdminOrdersPage = () => {
                         >
                             <option value="all">All Statuses</option>
                             <option value="pending">Pending</option>
-                            <option value="In progress">In Progress</option>
+                            <option value="in progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
                             <option value="failed">Failed</option>
                         </select>
                     </div>
@@ -306,16 +312,16 @@ const AdminOrdersPage = () => {
                                         
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 text-sm text-gray-600">
                                             <div>
-                                                <span className="font-medium">Customer:</span> {order.user?.email || 'N/A'}
+                                                <span className="font-medium">Customer:</span> {order.userId?.email || 'N/A'}
                                             </div>
                                             <div>
                                                 <span className="font-medium">Date:</span> {format(new Date(order.createdAt), "MMM dd, yyyy")}
                                             </div>
                                             <div>
-                                                <span className="font-medium">Items:</span> {order.products?.length || 0}
+                                                <span className="font-medium">Items:</span> {order.productIds?.length || 0}
                                             </div>
                                             <div>
-                                                <span className="font-medium">Total:</span> ${calculateOrderTotal(order.products).toFixed(2)}
+                                                <span className="font-medium">Total:</span> ₹{calculateOrderTotal(order.productIds).toFixed(2)}
                                             </div>
                                         </div>
                                         
@@ -349,68 +355,145 @@ const AdminOrdersPage = () => {
 
                                 {/* Expanded Details */}
                                 {selectedOrder === order._id && (
-                                    <div className="mt-4 pt-4 border-t border-gray-200">
-                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                            {/* Products */}
+                                    <div className="mt-6 bg-gray-50 rounded-lg p-6">
+                                        <div className="space-y-6">
+                                            
+                                            {/* Order Items Section */}
                                             <div>
-                                                <h4 className="font-semibold text-gray-800 mb-3">Products</h4>
-                                                <div className="space-y-2">
-                                                    {order.products?.map((item, index) => (
-                                                        <div key={item._id || index} className="bg-gray-50 rounded-lg p-3">
-                                                            <div className="flex justify-between items-start">
-                                                                <div className="flex-1">
-                                                                    <p className="font-medium text-gray-800">{item.product?.name || 'Product Name N/A'}</p>
-                                                                    <p className="text-sm text-gray-600">Quantity: {item.cartQuantity}</p>
-                                                                    <p className="text-sm text-gray-600">Unit Price: ${item.price}</p>
-                                                                </div>
-                                                                <div className="text-right">
-                                                                    <p className="font-semibold text-gray-800">
-                                                                        ${(item.price * item.cartQuantity).toFixed(2)}
-                                                                    </p>
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <h4 className="text-lg font-semibold text-gray-900">Order Items</h4>
+                                                    <span className="text-sm text-gray-500">{order.productIds?.length || 0} items</span>
+                                                </div>
+                                                
+                                                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                                                    <div className="divide-y divide-gray-200">
+                                                        {order.productIds?.map((item, index) => (
+                                                            <div key={index} className="p-4 hover:bg-gray-50 transition-colors">
+                                                                <div className="flex items-center space-x-4">
+                                                                    {/* Product Image */}
+                                                                    <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                                                                        {item.product?.images && item.product?.images.length > 0 ? (
+                                                                            <img 
+                                                                                src={item.product.images[0]} 
+                                                                                alt={item.product?.title || 'Product'} 
+                                                                                className="w-full h-full object-cover"
+                                                                                onError={(e) => {
+                                                                                    e.target.style.display = 'none';
+                                                                                    e.target.nextSibling.style.display = 'flex';
+                                                                                }}
+                                                                            />
+                                                                        ) : null}
+                                                                        <div className={`w-full h-full flex items-center justify-center ${item.product?.images && item.product?.images.length > 0 ? 'hidden' : ''}`}>
+                                                                            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                                                            </svg>
+                                                                        </div>
+                                                                    </div>
+                                                                    
+                                                                    {/* Product Details */}
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <h5 className="text-base font-medium text-gray-900 truncate">
+                                                                            {item.product?.title || 'Product Name N/A'}
+                                                                        </h5>
+                                                                        <div className="mt-1 flex items-center space-x-4 text-sm text-gray-600">
+                                                                            <span>Qty: {item.cartQuantity}</span>
+                                                                            <span>•</span>
+                                                                            <span>₹{item.price?.toLocaleString()} each</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    
+                                                                    {/* Item Total */}
+                                                                    <div className="text-right">
+                                                                        <p className="text-base font-semibold text-gray-900">
+                                                                            ₹{(item.price * item.cartQuantity)?.toLocaleString()}
+                                                                        </p>
+                                                                    </div>
                                                                 </div>
                                                             </div>
+                                                        ))}
+                                                        
+                                                        {/* Order Total Row */}
+                                                        <div className="p-4 bg-gray-50 border-t-2 border-gray-300">
+                                                            <div className="flex justify-between items-center">
+                                                                <span className="text-lg font-semibold text-gray-900">Order Total</span>
+                                                                <span className="text-xl font-bold text-gray-900">₹{calculateOrderTotal(order.productIds).toLocaleString()}</span>
+                                                            </div>
                                                         </div>
-                                                    ))}
+                                                    </div>
                                                 </div>
                                             </div>
 
-                                            {/* Payment Details */}
-                                            <div>
-                                                <h4 className="font-semibold text-gray-800 mb-3">Payment Information</h4>
-                                                <div className="bg-gray-50 rounded-lg p-3">
-                                                    <div className="space-y-2 text-sm">
-                                                        <div className="flex justify-between">
-                                                            <span className="text-gray-600">Payment Status:</span>
-                                                            <span className={`font-medium ${
-                                                                order.paymentStatus === 'SUCCESS' ? 'text-green-600' : 
-                                                                order.paymentStatus === 'PENDING' ? 'text-yellow-600' : 
-                                                                'text-red-600'
-                                                            }`}>
-                                                                {order.paymentStatus}
-                                                            </span>
-                                                        </div>
-                                                        <div className="flex justify-between">
-                                                            <span className="text-gray-600">Order Total:</span>
-                                                            <span className="font-semibold">${calculateOrderTotal(order.products).toFixed(2)}</span>
-                                                        </div>
-                                                        {order.paymentSessionId && (
-                                                            <div className="flex justify-between">
-                                                                <span className="text-gray-600">Session ID:</span>
-                                                                <span className="font-mono text-xs">{order.paymentSessionId}</span>
+                                            {/* Payment & Order Info */}
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                
+                                                {/* Payment Information */}
+                                                <div>
+                                                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Payment Information</h4>
+                                                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                                                        <div className="space-y-3">
+                                                            <div className="flex justify-between items-center">
+                                                                <span className="text-gray-600">Payment Status</span>
+                                                                <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getPaymentStatusColor(order.paymentStatus)}`}>
+                                                                    {order.paymentStatus}
+                                                                </span>
                                                             </div>
-                                                        )}
-                                                    </div>
-                                                    
-                                                    {order.paymentDetails && (
-                                                        <div className="mt-3 pt-3 border-t border-gray-200">
-                                                            <p className="text-xs text-gray-500 mb-2">Payment Details:</p>
-                                                            <pre className="text-xs bg-white p-2 rounded border overflow-x-auto">
-                                                                {JSON.stringify(order.paymentDetails, null, 2)}
-                                                            </pre>
+                                                            
+                                                            <div className="flex justify-between items-center">
+                                                                <span className="text-gray-600">Order Status</span>
+                                                                <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(order.orderStatus)}`}>
+                                                                    {order.orderStatus}
+                                                                </span>
+                                                            </div>
+                                                            
+                                                            {order.paymentSessionId && (
+                                                                <div className="pt-3 border-t border-gray-200">
+                                                                    <span className="text-gray-600 text-sm">Payment Session ID</span>
+                                                                    <p className="font-mono text-xs text-gray-500 mt-1 break-all">{order.paymentSessionId}</p>
+                                                                </div>
+                                                            )}
                                                         </div>
-                                                    )}
+                                                    </div>
+                                                </div>
+                                                
+                                                {/* Delivery Information */}
+                                                <div>
+                                                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Delivery Information</h4>
+                                                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                                                        <div className="space-y-3">
+                                                            <div>
+                                                                <span className="text-gray-600 text-sm">Delivery Address</span>
+                                                                <p className="mt-1 text-gray-900 whitespace-pre-line">{order.address}</p>
+                                                            </div>
+                                                            
+                                                            {order.contactNumbers?.length > 0 && (
+                                                                <div className="pt-3 border-t border-gray-200">
+                                                                    <span className="text-gray-600 text-sm">Contact Numbers</span>
+                                                                    <p className="mt-1 text-gray-900">{order.contactNumbers.join(", ")}</p>
+                                                                </div>
+                                                            )}
+                                                            
+                                                            <div className="pt-3 border-t border-gray-200">
+                                                                <span className="text-gray-600 text-sm">Order Date</span>
+                                                                <p className="mt-1 text-gray-900">{format(new Date(order.createdAt), "PPpp")}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
+
+                                            {/* Raw Payment Details (Collapsible) */}
+                                            {order.paymentDetails && (
+                                                <details className="bg-white rounded-lg shadow-sm border border-gray-200">
+                                                    <summary className="p-4 cursor-pointer font-medium text-gray-900 hover:bg-gray-50">
+                                                        Raw Payment Details (Developer View)
+                                                    </summary>
+                                                    <div className="p-4 pt-0">
+                                                        <pre className="text-xs bg-gray-50 p-3 rounded border overflow-x-auto text-gray-600">
+                                                            {JSON.stringify(order.paymentDetails, null, 2)}
+                                                        </pre>
+                                                    </div>
+                                                </details>
+                                            )}
                                         </div>
                                     </div>
                                 )}

@@ -310,13 +310,15 @@ const AdminProductsPage = () => {
                                             <img 
                                                 src={elem.images?.[0]} 
                                                 alt={elem.title}
-                                                className="w-full h-full object-contain p-3 transition-transform duration-300 group-hover:scale-105"
+                                                className={`w-full h-full object-contain p-3 transition-all duration-300 group-hover:scale-105 ${
+                                                    elem.quantity <= 0 ? 'grayscale blur-[1px] opacity-85' : ''
+                                                }`}
                                             />
                                             {elem.quantity <= 0 && (
-                                                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                                                    <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                                                        Out of Stock
-                                                    </span>
+                                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                    <div className="bg-white bg-opacity-95 backdrop-blur-md border border-gray-200 shadow-lg rounded-lg px-4 py-2">
+                                                        <span className="text-gray-700 font-semibold text-sm">Out of Stock</span>
+                                                    </div>
                                                 </div>
                                             )}
                                             {elem.quantity > 0 && elem.quantity <= 5 && (

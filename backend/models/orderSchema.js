@@ -33,10 +33,9 @@ const OrderSchema = new Schema(
             required: true,
         },
         contactNumbers: [String],
-        orderStatus: String,
         orderStatus: {
             type: String,
-            enum: ["pending", "In progress", "failed"],
+            enum: ["pending", "in progress", "completed", "failed", "cancelled"],
             default: "pending",
         },
         paymentStatus: {

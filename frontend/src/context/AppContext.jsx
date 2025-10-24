@@ -255,6 +255,7 @@ const AppContextProvider = ({children}) => {
       const sharedState = {
         user,
         handleSetUser,
+        authenticateUser,
         handleLogout,
         appLoading,
         isLoggedIn,
