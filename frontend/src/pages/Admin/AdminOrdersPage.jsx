@@ -82,11 +82,11 @@ const AdminOrdersPage = () => {
                 case 'oldest':
                     return new Date(a.createdAt) - new Date(b.createdAt);
                 case 'amount-high':
-                    return (b.products?.reduce((sum, p) => sum + (p.price * p.cartQuantity), 0) || 0) - 
-                           (a.products?.reduce((sum, p) => sum + (p.price * p.cartQuantity), 0) || 0);
+                    return (b.productIds?.reduce((sum, p) => sum + (p.price * p.cartQuantity), 0) || 0) - 
+                           (a.productIds?.reduce((sum, p) => sum + (p.price * p.cartQuantity), 0) || 0);
                 case 'amount-low':
-                    return (a.products?.reduce((sum, p) => sum + (p.price * p.cartQuantity), 0) || 0) - 
-                           (b.products?.reduce((sum, p) => sum + (p.price * p.cartQuantity), 0) || 0);
+                    return (a.productIds?.reduce((sum, p) => sum + (p.price * p.cartQuantity), 0) || 0) - 
+                           (b.productIds?.reduce((sum, p) => sum + (p.price * p.cartQuantity), 0) || 0);
                 default:
                     // Default to newest first
                     return new Date(b.createdAt) - new Date(a.createdAt);
@@ -132,8 +132,8 @@ const AdminOrdersPage = () => {
         }
     };
 
-    const calculateOrderTotal = (products) => {
-        return products?.reduce((sum, product) => sum + (product.price * product.cartQuantity), 0) || 0;
+    const calculateOrderTotal = (productIds) => {
+        return productIds?.reduce((sum, product) => sum + (product.price * product.cartQuantity), 0) || 0;
     };
 
     if (loading) {

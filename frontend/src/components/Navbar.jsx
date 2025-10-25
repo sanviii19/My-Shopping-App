@@ -87,7 +87,7 @@ const Navbar = forwardRef(({searchBar = true}, ref) => {
                     {/* Logo Text */}
                     <div className="text-lg font-bold text-white group-hover:text-blue-100 transition-colors duration-200">
                         <span className="bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent font-extrabold tracking-wide">
-                            MyShop
+                            myshoppingapp
                         </span>
                     </div>
                 </Link>
