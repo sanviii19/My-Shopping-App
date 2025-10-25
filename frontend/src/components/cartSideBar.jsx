@@ -18,102 +18,115 @@ const CartSideBar = () => {
     const totalPrice = Array.isArray(cart) ? cart.reduce((sum, item) => sum + (item.productId.price * item.cartQuantity), 0) : 0;
 
     return (
-        <div className=" -mt-2 w-full h-full bg-white border-l border-gray-200 flex flex-col shadow-xl overflow-hidden">
+        <div className="-mt-2 w-full h-full bg-white border-l border-gray-200 flex flex-col shadow-2xl overflow-hidden">
             {/* Header */}
-            <div className="flex-shrink-0 bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 flex items-center justify-between">
+            <div className="flex-shrink-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center">
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m2.6 8L6 7H3m4 6v4a2 2 0 002 2h8a2 2 0 002-2v-4m-6 0V9a2 2 0 10-4 0v4.01" />
-                    </svg>
-                    <h2 className="text-lg font-bold">Shopping Cart</h2>
+                    <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center mr-2">
+                        <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 className="text-lg font-semibold text-gray-900">Shopping Bag</h2>
+                        <p className="text-xs text-gray-500">
+                            {cart?.length === 0 ? 'Your bag is empty' : `${totalItems} item${totalItems !== 1 ? 's' : ''} selected`}
+                        </p>
+                    </div>
                 </div>
                 {cart?.length > 0 && (
-                    <div className="bg-white/20 backdrop-blur rounded-full px-2 py-1">
-                        <span className="text-xs font-semibold">{totalItems} items</span>
+                    <div className="bg-indigo-50 text-indigo-700 rounded-md px-2 py-1 text-xs font-medium">
+                        {totalItems}
                     </div>
                 )}
             </div>
 
             {/* Cart Content - Scrollable Area */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden bg-gray-50">
                 {cart?.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4m2.6 8L6 7H3m4 6v4a2 2 0 002 2h8a2 2 0 002-2v-4m-6 0V9a2 2 0 10-4 0v4.01" />
+                    <div className="flex flex-col items-center justify-center h-full px-4 py-8 text-center">
+                        <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center mb-4 shadow-inner">
+                            <svg className="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                             </svg>
                         </div>
-                        <h3 className="text-base font-semibold text-gray-900 mb-2">Your cart is empty</h3>
-                        <p className="text-sm text-gray-500 mb-4">Add some products to get started!</p>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Your bag is empty</h3>
+                        <p className="text-sm text-gray-600 mb-4 leading-relaxed max-w-xs">
+                            Start exploring our collection!
+                        </p>
                         <button 
                             onClick={() => navigate('/search')}
-                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+                            className="bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                         >
                             Start Shopping
                         </button>
                     </div>
                 ) : (
-                    <div className="p-3 space-y-3">
+                    <div className="px-3 py-3 space-y-2">
                         {cart?.map((cartItem, index) => {
                             return (
                                 <div 
                                     key={cartItem?._id || index} 
-                                    className="bg-white border rounded-lg p-3 transition-all duration-200 hover:shadow-md cursor-pointer border-gray-200 hover:border-blue-200"
+                                    className="bg-white rounded-lg p-3 transition-all duration-300 hover:shadow-md cursor-pointer border border-gray-100 hover:border-indigo-200 group"
                                     onClick={() => handleViewProduct(cartItem?.productId?._id)}
                                 >
                                     <div className="flex gap-3">
                                         {/* Product Image */}
                                         <div className="flex-shrink-0">
-                                            <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100">
+                                            <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-100 shadow-sm">
                                                 <img 
                                                     src={cartItem?.productId?.images?.[0]} 
                                                     alt={cartItem?.productId?.title}
-                                                    className="w-full h-full object-cover"
+                                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                                 />
                                             </div>
                                         </div>
                                         
                                         {/* Product Details */}
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-medium text-gray-900 text-sm leading-tight mb-1 truncate">
+                                            <h3 className="font-medium text-gray-900 text-sm leading-tight mb-1 line-clamp-2">
                                                 {cartItem?.productId?.title}
                                             </h3>
-                                            <p className="text-blue-600 font-bold text-base">
-                                                ₹{cartItem?.productId?.price?.toLocaleString()}
-                                            </p>
-                                            <p className="text-xs text-gray-500">
-                                                Stock: {cartItem?.productId?.quantity}
-                                            </p>
+                                            <div className="flex items-baseline gap-1 mb-1">
+                                                <p className="text-gray-900 font-bold text-sm">
+                                                    ₹{cartItem?.productId?.price?.toLocaleString()}
+                                                </p>
+                                                <span className="text-xs text-gray-500">each</span>
+                                            </div>
+                                            <div className="flex items-center gap-1 text-xs text-gray-600">
+                                                <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
+                                                <span>{cartItem?.productId?.quantity} in stock</span>
+                                            </div>
                                         </div>
                                     </div>
                                     
                                     {/* Quantity Controls */}
-                                    <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
-                                        <div className="flex items-center bg-gray-50 rounded-md">
+                                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
+                                        <div className="flex items-center bg-gray-50 rounded-lg p-0.5 shadow-sm">
                                             <button 
                                                 onClick={(e) => {
                                                     e.stopPropagation(); 
                                                     removeFromCart(cartItem?.productId?._id);
                                                 }} 
                                                 disabled={updatingCartState}
-                                                className={`w-7 h-7 rounded-l-md bg-white border border-gray-200 flex items-center justify-center transition-all duration-200 ${
+                                                className={`w-7 h-7 rounded-md bg-white border-0 flex items-center justify-center transition-all duration-200 shadow-sm ${
                                                     updatingCartState 
                                                         ? 'opacity-50 cursor-not-allowed' 
-                                                        : 'hover:bg-red-50 hover:border-red-200 hover:text-red-600'
+                                                        : 'hover:bg-red-50 hover:text-red-600 active:scale-95'
                                                 }`}
                                             >
                                                 {updatingCartState ? (
-                                                    <svg className="animate-spin w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <svg className="animate-spin w-3 h-3 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                                     </svg>
                                                 ) : (
-                                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                                                    <svg className="w-2.5 h-2.5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M20 12H4" />
                                                     </svg>
                                                 )}
                                             </button>
-                                            <span className="px-3 py-1 text-sm font-medium text-gray-700 bg-white border-t border-b border-gray-200 min-w-[40px] text-center">
+                                            <span className="px-2 py-0.5 text-xs font-semibold text-gray-800 bg-transparent min-w-[24px] text-center">
                                                 {cartItem?.cartQuantity}
                                             </span>
                                             <button 
@@ -121,21 +134,21 @@ const CartSideBar = () => {
                                                     e.stopPropagation(); 
                                                     addToCart(cartItem?.productId?._id);
                                                 }} 
-                                                className={`w-7 h-7 rounded-r-md bg-white border border-gray-200 flex items-center justify-center transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
+                                                className={`w-5 h-5 rounded bg-white border-0 flex items-center justify-center transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
                                                     updatingCartState 
                                                         ? 'opacity-50 cursor-not-allowed' 
-                                                        : 'hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600'
+                                                        : 'hover:bg-indigo-50 hover:text-indigo-600'
                                                 }`}
                                                 disabled={updatingCartState}
                                             >
                                                 {updatingCartState ? (
-                                                    <svg className="animate-spin w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <svg className="animate-spin w-3 h-3 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                                     </svg>
                                                 ) : (
-                                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                                    <svg className="w-2.5 h-2.5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                                     </svg>
                                                 )}
                                             </button>
@@ -143,7 +156,7 @@ const CartSideBar = () => {
                                         
                                         {/* Item Total */}
                                         <div className="text-right">
-                                            <p className="text-sm font-bold text-gray-900">
+                                            <p className="text-xs font-bold text-gray-900">
                                                 ₹{(cartItem?.productId?.price * cartItem?.cartQuantity).toLocaleString()}
                                             </p>
                                         </div>
@@ -156,22 +169,22 @@ const CartSideBar = () => {
             </div>
             {/* Footer - Checkout Section */}
             {cart?.length > 0 && (
-                <div className="flex-shrink-0 border-t border-gray-200 bg-gray-50">
-                    <div className="p-4 space-y-3">
+                <div className="flex-shrink-0 border-t border-gray-200 bg-white">
+                    <div className="px-3 py-3 space-y-2">
                         {/* Price Summary */}
-                        <div className="bg-white rounded-lg p-3 space-y-2">
-                            <div className="flex justify-between text-sm text-gray-600">
-                                <span>Items ({totalItems})</span>
-                                <span>₹{totalPrice.toLocaleString()}</span>
+                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-md p-2 space-y-1 border border-gray-200">
+                            <div className="flex justify-between items-center text-xs text-gray-700">
+                                <span className="font-medium">Subtotal ({totalItems})</span>
+                                <span className="font-semibold">₹{totalPrice.toLocaleString()}</span>
                             </div>
-                            <div className="flex justify-between text-sm text-gray-600">
-                                <span>Delivery</span>
-                                <span className="text-green-600 font-medium">FREE</span>
+                            <div className="flex justify-between items-center text-xs text-gray-700">
+                                <span className="font-medium">Shipping</span>
+                                <span className="text-green-600 font-semibold">FREE</span>
                             </div>
-                            <div className="border-t pt-2">
-                                <div className="flex justify-between text-base font-bold text-gray-900">
-                                    <span>Total</span>
-                                    <span className="text-blue-600">₹{totalPrice.toLocaleString()}</span>
+                            <div className="border-t border-gray-300 pt-1">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm font-bold text-gray-900">Total</span>
+                                    <span className="text-base font-bold text-indigo-600">₹{totalPrice.toLocaleString()}</span>
                                 </div>
                             </div>
                         </div>
@@ -180,27 +193,27 @@ const CartSideBar = () => {
                         <button 
                             onClick={handleCheckoutClick} 
                             disabled={updatingCartState}
-                            className={`w-full py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${
+                            className={`w-full py-2 rounded-md font-bold text-xs transition-all duration-300 shadow-md ${
                                 updatingCartState
-                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                                    : 'bg-green-500 hover:bg-green-600 text-white shadow-md hover:shadow-lg'
+                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none' 
+                                    : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white hover:shadow-lg'
                             }`}
                         >
                             {updatingCartState ? (
-                                <>
-                                    <svg className="animate-spin w-4 h-4 inline mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <div className="flex items-center justify-center">
+                                    <svg className="animate-spin w-3 h-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 818-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    Updating Cart...
-                                </>
+                                    Processing...
+                                </div>
                             ) : (
-                                <>
-                                    <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                <div className="flex items-center justify-center">
+                                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                     </svg>
-                                    Proceed to Payment
-                                </>
+                                    Checkout
+                                </div>
                             )}
                         </button>
                     </div>

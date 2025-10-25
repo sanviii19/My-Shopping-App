@@ -1,5 +1,6 @@
 import { Outlet } from "react-router";
 import { Navbar } from "../components/Navbar";
+import { Footer } from "../components/Footer";
 import { useAuthContext } from "../context/AppContext";
 import { CartSideBar } from "../components/cartSideBar";
 import { useRef, createContext, useContext } from "react";
@@ -32,6 +33,7 @@ const BasicLayout = () => {
                     {/* Main content area */}
                     <div className={`transition-all duration-300 ease-in-out ${shouldShowCart ? 'pr-80' : 'pr-0'}`}>
                         <Outlet />
+                        <Footer />
                     </div>
                 
                 {/* Cart Sidebar - Always rendered but slides in/out */}

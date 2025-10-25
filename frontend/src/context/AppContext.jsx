@@ -11,10 +11,11 @@ const AppContextProvider = ({children}) => {
       const [placingOrder, setPlacingOrder] = useState(false);
       const [updatingCartState, setUpdatingCartState] = useState(false);
       const [isLoggingOut, setIsLoggingOut] = useState(false);
+      const [navigationLoading, setNavigationLoading] = useState(false);
     
       const { isLoggedIn } = user;
 
-      const authenticateUser = async() => {
+      const authenticateUser = async(showErrorOnFail = false) => {
         try{
           setAppLoading(true);
           const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/users/me`, {
@@ -31,12 +32,16 @@ const AppContextProvider = ({children}) => {
           }else{
             // Ensure user is set to logged out state
             setUser({isLoggedIn: false});
-            showErrorToast("Session expired. Please login again.");
+            if(showErrorOnFail) {
+              showErrorToast("Session expired. Please login again.");
+            }
           }
         }catch(err){
           // Ensure user is set to logged out state on error
           setUser({isLoggedIn: false});
-          showErrorToast("Error authenticating user. Please login again.");
+          if(showErrorOnFail) {
+            showErrorToast("Error authenticating user. Please login again.");
+          }
         }finally{
           setAppLoading(false);
         }
@@ -209,9 +214,8 @@ const AppContextProvider = ({children}) => {
           const result = await response.json();
           
           if(result.isSuccess){
-
-            showSuccessToast(result.message);
-                setCart([]);
+                // Don't show success toast here - it will be shown after payment completion
+                // Don't clear cart here - it will be cleared after payment completion
                 return {
                     paymentSessionId: result.data.paymentDetails.payment_session_id,
                     orderId: result.data.orderId,
@@ -260,13 +264,16 @@ const AppContextProvider = ({children}) => {
         appLoading,
         isLoggedIn,
         cart,
+        setCart,
         cartLoaded,
         addToCart,
         removeFromCart,
         handlePlaceOrder,
         placingOrder,
         updatingCartState,
-        isLoggingOut
+        isLoggingOut,
+        navigationLoading,
+        setNavigationLoading
       };
 
      return (

@@ -16,6 +16,7 @@ const SearchPage = () => {
     const Navigate = useNavigate();
 
     const searchText = (query.get("text"));
+    const categoryName = query.get("category");
 
     const getAllProducts = async () => {
         try{
@@ -52,12 +53,25 @@ const SearchPage = () => {
     }
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
-            <div className="pt-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex-1 flex flex-col">
-                {searchText && (
+            <div className="pt-8 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex-1 flex flex-col">
+                {searchText && !categoryName && (
                     <div className="mb-6">
                         <h2 className="text-xl text-gray-700">
                             Search results for: <span className="font-semibold text-blue-600">{searchText}</span>
                         </h2>
+                    </div>
+                )}
+                {categoryName && (
+                    <div className="mb-8 mt-2">
+                        <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-700 text-transparent bg-clip-text">
+                            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+                                {categoryName}
+                            </h1>
+                        </div>
+                        <div className="mt-2 flex items-center space-x-2">
+                            <div className="h-0.5 w-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
+                            <p className="text-gray-600 text-sm font-medium">Explore our collection</p>
+                        </div>
                     </div>
                 )}
                 <div className="flex-1">{ loading ? (
@@ -69,11 +83,15 @@ const SearchPage = () => {
                         {products.length === 0 ? (
                             <div className="text-center py-12 bg-white rounded-lg shadow-sm">
                                 <p className="text-gray-600 text-lg">
-                                    No results found {searchText && <span>for "<span className="text-blue-600">{searchText}</span>"</span>}
+                                    {categoryName ? (
+                                        <>No products found in {categoryName} category</>
+                                    ) : (
+                                        <>No results found {searchText && <span>for "<span className="text-blue-600">{searchText}</span>"</span>}</>
+                                    )}
                                 </p>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
                                 {products.map((elem) => (
                                     <div key={elem._id} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100 scale-100 hover:scale-[1.02] transform"
                                         role="button"
@@ -107,7 +125,7 @@ const SearchPage = () => {
                 )}
                 </div>
                 {products.length > 0 && (
-                    <div className="mt-auto">
+                    <div className="mt-auto pt-8 pb-4">
                         <Paginator total={total} page={page} limit={LIMIT_PER_PAGE} handlePageClick={(val) => {setPage(val)}} />
                     </div>
                 )}

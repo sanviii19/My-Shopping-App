@@ -34,7 +34,7 @@ const LoginPage = () => {
             if(response.status == 200){
                 showSuccessToast("Login Successful!");
                 // Fetch complete user data including role after successful login
-                await authenticateUser();
+                await authenticateUser(true);
                 navigate("/");
             }
             else{
